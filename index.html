@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAPD</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #2d2b36;
+            color: #ecf0f1;
+            position: relative;
+            transition: background-color 0.5s ease;
+        }
+
+        body.error {
+            background-color: #e74c3c;
+        }
+
+        #logo {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        #chatBox {
+            width: 300px;
+            height: 100%;
+            overflow: auto;
+            background-color: #34495e;
+            border-radius: 10px;
+            margin-right: auto;
+            margin-top: 10px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex-grow: 1;
+        }
+
+        #loginForm {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #2c3e50;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            opacity: 1;
+        }
+
+        .login-success #loginForm {
+            display: none;
+        }
+
+        #logo img {
+            width: 300px; /* You can adjust the width as needed */
+        }
+
+        #loginForm label {
+            margin-bottom: 5px;
+        }
+
+        #loginForm input {
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+
+        #loginForm input:focus {
+            border-color: #e74c3c;
+        }
+
+        #loginButton {
+            padding: 10px;
+            background-color: #3498db;
+            color: #ecf0f1;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #loginButton:hover {
+            background-color: #2980b9;
+        }
+
+        .success {
+            color: #2ecc71;
+        }
+
+        .error {
+            color: #e74c3c;
+        }
+
+        #chatInput {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chatInput input {
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #3498db;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+
+        #sendButton {
+            padding: 10px;
+            background-color: #3498db;
+            color: #ecf0f1;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #sendButton:hover {
+            background-color: #2980b9;
+        }
+
+        .chat-box {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #34495e;
+            border-radius: 5px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            width: 70%;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .chat-box.me {
+            justify-content: flex-end;
+        }
+
+        .chat-box p {
+            margin: 0;
+        }
+
+        #chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        #speechRecognitionContainer {
+            background-color: #2d2b36;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            display: none;
+        }
+
+        #spokenText {
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        #buttonContainer button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background-color: #34495e;
+            color: #fff;
+        }
+
+        #buttonContainer button:hover {
+            background-color: #2c3e50;
+        }
+    </style>
+    <script>
+        // Verschleierung der Benutzerdaten
+        const users = [
+            { B: 'Lucas Dawson', P: 'LucasDawson07', s: '215' },
+            { B: 'admin', P: 'admin', s: 'admin' },
+            { B: 'Marcel Rickiat', P: 'MarcelRickiat07', s: '216' }
+            // Weitere Benutzer hier hinzufügen, wenn benötigt
+        ];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const isLoginSuccess = localStorage.getItem('loginSuccess');
+            const loginForm = document.getElementById('loginForm');
+            if (isLoginSuccess === 'true') {
+                loginForm.classList.add('login-success');
+            } else {
+                loginForm.classList.remove('login-success');
+            }
+        });
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const serviceNumber = document.getElementById('serviceNumber').value;
+            const user = users.find(u => u.B === username && u.P === password && u.s === serviceNumber);
+            if (user) {
+                localStorage.setItem('loginSuccess', 'true');
+                const loginForm = document.getElementById('loginForm');
+                loginForm.classList.add('login-success');
+                loginForm.style.display = 'none';
+            } else {
+                const loginForm = document.getElementById('loginForm');
+                loginForm.classList.remove('login-success');
+                document.body.classList.add('error');
+                setTimeout(() => {
+                    document.body.classList.remove('error');
+                }, 500);
+            }
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const chatBox = document.getElementById('chatBox');
+            if (messageInput.value.trim() !== '') {
+                const newMessage = document.createElement('div');
+                newMessage.textContent = messageInput.value;
+                newMessage.className = 'chat-box';
+                chatBox.appendChild(newMessage);
+                messageInput.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        setInterval(() => {
+            const chatBox = document.getElementById('chatBox');
+            const messages = [
+                'Streifenwagen 08 meldet sich.',
+            'Streifenwagen 27 berichtet von Vandalismus am Stadtpark.',
+            'Streifenwagen 55 führt Geschwindigkeitskontrollen durch.',
+            'Streifenwagen 7 bittet um Backup bei einer Verfolgungsjagd.',
+            'Streifenwagen 37 sichert den Tatort für die Spurensicherung.',
+            'Streifenwagen 21 überwacht ein öffentliches Event.',
+            'Streifenwagen 60 meldet eine gestohlene Fahrzeugbeschreibung.',
+            'Streifenwagen 8 kontrolliert ein verdächtiges Paket.',
+            'Streifenwagen 15 nimmt eine Aussage auf dem Revier entgegen.',
+            'Streifenwagen 9 eskortiert einen Konvoi.',
+            'Einheit 07, Überprüfung der Bar in der Elm Street auf Lärmbelästigung.',
+            'Disponent: Alarm in der Schule, möglicher Einbruch. Sofortiges Handeln erforderlich.',
+            'Schlägerei in der Bar "The Blue Lantern". Einheiten bitte umgehend vor Ort.',
+            'Verkehrsstau auf der Oak Street. Bitte Verkehrsregelung durchführen.',
+            'Durchführung von Geschwindigkeitskontrollen auf der Interstate 95.',
+            'Einsatzleiter: Besprechung um 14 Uhr im Besprechungsraum. Anwesenheit erforderlich.',
+            'Einheit 31, bitte auf der Fifth Avenue patrouillieren.',
+            'Disponent: Meldung über Ruhestörung in der Green Street. Bitte überprüfen Sie die Situation.',
+            'Streifenwagen 12, Überwachung des Geschäftsviertels für mögliche Einbrüche.',
+            'Einbruchalarm im Juweliergeschäft. Schnelle Reaktion erforderlich.',
+            'Disponent: Suche nach vermisster Person in der Hillside Avenue.',
+            'Einheit 44, bitte den Parkbereich überwachen. Verdächtige Aktivitäten gemeldet.',
+            'Kontrolle der Bars und Clubs auf Einhaltung der Sperrstunde.',
+            'Disponent: Überprüfen Sie den Hafenbereich auf verdächtige Schiffsaktivitäten.',
+            'Einheit 10, bitte zum Revier zurückkehren, du hast wichtige Informationen.',
+            'Verkehrsunfall auf der Main Street. Rettungsdienst wurde benachrichtigt.',
+            'Einsatzleiter: Aktive Fahndung nach entkommenem Häftling. Bitte um Unterstützung.',
+            'Disponent: Aufzug stecken geblieben, Feuerwehr ist bereits unterwegs. Bitte um Unterstützung.',
+            'Streifenwagen 23, bitte Überprüfung der Lagerhalle auf Eindringlinge.',
+            'Disponent: Meldung über verdächtiges Paket am Bahnhof. Sicherheitsmaßnahmen ergreifen.',
+            'Einsatzleiter: Versammlung der Anti-Drogen-Einheit um 10 Uhr im Besprechungsraum.',
+            'Einheit 56, bitte sichern Sie den Bereich um das Regierungsbüro.',
+            'Disponent: Unruhen in der Innenstadt. Alle Einheiten bereithalten.',
+            'Streifenwagen 19, bitte zur Unterstützung der Feuerwehr am Brandort eintreffen.',
+            'Verdächtiges Verhalten an der Bank gemeldet. Einheiten bitte umgehend vor Ort.',
+            'Einheit 33, bitte den Bereich um den Flughafen auf verdächtige Aktivitäten überprüfen.',
+            'Disponent: Überprüfung der Überwachungskameras im Einkaufszentrum auf Diebstähle.',
+            'Einsatzleiter: Aktive Fahndung nach bewaffnetem Täter. Seien Sie vorsichtig.',
+            'Einheit 08, bitte zur Autobahnraststätte für Sicherheitskontrollen begeben.',
+            'Disponent: Demonstration im Stadtpark. Einheiten für Sicherheit sorgen.',
+            'Streifenwagen 14, Überprüfung der Schule auf unbefugten Zutritt.',
+            'Verdächtiges Fahrzeug in der Wohngegend gemeldet. Einheiten, bitte prüfen.',
+            'Einheit 41, bitte auf mögliche Drogenaktivitäten im Club in der Pine Street achten.',
+            'Disponent: Rettungseinsatz am Seeufer. Einheiten für medizinische Unterstützung.',
+            'Einsatzleiter: Verdächtiges Päckchen am Bahnhof. Evakuierungsmaßnahmen einleiten.',
+            'Einheit 25, bitte zum Stadtzentrum zurückkehren, du wirst für eine Pressekonferenz benötigt.',
+            'Streifenwagen 09, bitte auf Autobahn A1 auf Unfallstelle achten.',
+            'Disponent: Unterstützung für vermisstes Kind in der Maple Street.',
+            'Verkehrsbehinderung auf der Brücke. Einheiten für Verkehrsregelung.',
+            'Einheit 18, bitte zur Tierrettung in der Parkanlage eilen.',
+            'Streifenwagen 08 meldet sich.',
+            'Streifenwagen 76 auf Streife in der Innenstadt.',
+            'Streifenwagen 51 meldet einen Verkehrsunfall.',
+            'Streifenwagen 99 bereitet sich auf einen Einsatz vor.',
+            'Streifenwagen 64 bittet um Überprüfung einer verdächtigen Person.',
+            'Streifenwagen 32 meldet Ruhestörung in der Elm Street.',
+            'Streifenwagen 18 auf dem Weg zu einem Notruf.',
+            'Streifenwagen 27 berichtet von Vandalismus am Stadtpark.',
+            'Streifenwagen 55 führt Geschwindigkeitskontrollen durch.',
+            'Streifenwagen 7 bittet um Backup bei einer Verfolgungsjagd.',
+            'Streifenwagen 37 sichert den Tatort für die Spurensicherung.',
+            'Streifenwagen 21 überwacht ein öffentliches Event.',
+            'Streifenwagen 60 meldet eine gestohlene Fahrzeugbeschreibung.',
+            'Streifenwagen 8 kontrolliert ein verdächtiges Paket.',
+            'Streifenwagen 15 nimmt eine Aussage auf dem Revier entgegen.',
+            'Streifenwagen 9 eskortiert einen Konvoi.',
+            'Einheit 07, Überprüfung der Bar in der Elm Street auf Lärmbelästigung.',
+            'Disponent: Alarm in der Schule, möglicher Einbruch. Sofortiges Handeln erforderlich.',
+            'Schlägerei in der Bar "The Blue Lantern". Einheiten bitte umgehend vor Ort.',
+            'Verkehrsstau auf der Oak Street. Bitte Verkehrsregelung durchführen.',
+            'Durchführung von Geschwindigkeitskontrollen auf der Interstate 95.',
+            'Einsatzleiter: Besprechung um 14 Uhr im Besprechungsraum. Anwesenheit erforderlich.',
+            'Einheit 31, bitte auf der Fifth Avenue patrouillieren.',
+            'Disponent: Meldung über Ruhestörung in der Green Street. Bitte überprüfen Sie die Situation.',
+            'Streifenwagen 12, Überwachung des Geschäftsviertels für mögliche Einbrüche.',
+            'Einbruchalarm im Juweliergeschäft. Schnelle Reaktion erforderlich.',
+            'Disponent: Suche nach vermisster Person in der Hillside Avenue.',
+            'Einheit 44, bitte den Parkbereich überwachen. Verdächtige Aktivitäten gemeldet.',
+            'Kontrolle der Bars und Clubs auf Einhaltung der Sperrstunde.',
+            'Disponent: Überprüfen Sie den Hafenbereich auf verdächtige Schiffsaktivitäten.',
+            'Einheit 10, bitte zum Revier zurückkehren, du hast wichtige Informationen.',
+            'Verkehrsunfall auf der Main Street. Rettungsdienst wurde benachrichtigt.',
+            'Einsatzleiter: Aktive Fahndung nach entkommenem Häftling. Bitte um Unterstützung.',
+            'Disponent: Aufzug stecken geblieben, Feuerwehr ist bereits unterwegs. Bitte um Unterstützung.',
+            'Streifenwagen 23, bitte Überprüfung der Lagerhalle auf Eindringlinge.',
+            'Disponent: Meldung über verdächtiges Paket am Bahnhof. Sicherheitsmaßnahmen ergreifen.',
+            'Einsatzleiter: Versammlung der Anti-Drogen-Einheit um 10 Uhr im Besprechungsraum.',
+            'Einheit 56, bitte sichern Sie den Bereich um das Regierungsbüro.',
+            'Disponent: Unruhen in der Innenstadt. Alle Einheiten bereithalten.',
+            'Streifenwagen 19, bitte zur Unterstützung der Feuerwehr am Brandort eintreffen.',
+            'Verdächtiges Verhalten an der Bank gemeldet. Einheiten bitte umgehend vor Ort.',
+            'Einheit 33, bitte den Bereich um den Flughafen auf verdächtige Aktivitäten überprüfen.',
+            'Disponent: Überprüfung der Überwachungskameras im Einkaufszentrum auf Diebstähle.',
+            'Einsatzleiter: Aktive Fahndung nach bewaffnetem Täter. Seien Sie vorsichtig.',
+            'Einheit 08, bitte zur Autobahnraststätte für Sicherheitskontrollen begeben.',
+            'Disponent: Demonstration im Stadtpark. Einheiten für Sicherheit sorgen.',
+            'Streifenwagen 14, Überprüfung der Schule auf unbefugten Zutritt.',
+            'Verdächtiges Fahrzeug in der Wohngegend gemeldet. Einheiten, bitte prüfen.',
+            'Einheit 41, bitte auf mögliche Drogenaktivitäten im Club in der Pine Street achten.',
+            'Disponent: Rettungseinsatz am Seeufer. Einheiten für medizinische Unterstützung.',
+            'Einsatzleiter: Verdächtiges Päckchen am Bahnhof. Evakuierungsmaßnahmen einleiten.',
+            'Einheit 25, bitte zum Stadtzentrum zurückkehren, du wirst für eine Pressekonferenz benötigt.',
+            'Streifenwagen 09, bitte auf Autobahn A1 auf Unfallstelle achten.',
+            'Disponent: Unterstützung für vermisstes Kind in der Maple Street.',
+            'Verkehrsbehinderung auf der Brücke. Einheiten für Verkehrsregelung.',
+            'Einheit 18, bitte zur Tierrettung in der Parkanlage eilen.',
+            ];
+            const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+            const newMessage = document.createElement('div');
+            newMessage.textContent = randomMessage;
+            newMessage.className = 'chat-box';
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 1500);
+    </script>
+</head>
+
+<body>
+    <div id="logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Seal_of_the_Los_Angeles_Police_Department.png/220px-Seal_of_the_Los_Angeles_Police_Department.png" alt="Police Logo">
+    </div>
+    <div id="chatBox"></div>
+    <div id="loginForm">
+        <label for="username">Benutzername:</label>
+        <input type="text" id="username" name="username" required="">
+        <label for="password">Passwort:</label>
+        <input type="password" id="password" name="password" required="">
+        <label for="serviceNumber">Dienstnummer (3-stellig):</label>
+        <input type="text" id="serviceNumber" name="serviceNumber" pattern="\d{3}" title="Drei Ziffern erforderlich" required="">
+        <button id="loginButton" onclick="login()">Anmelden</button>
+    </div>
+    <div id="speechRecognitionContainer" style="display: none;">
+        <label for="messageInput">Sprechen Sie hier:</label>
+        <input type="text" id="messageInput" placeholder="">
+    </div>
+    <script>
+        // Funktion zur Überprüfung, ob das Login-Formular ausgeblendet ist und fügt entsprechende Buttons hinzu
+        function addButtonsIfLoginFormHidden() {
+            var loginForm = document.getElementById("loginForm");
+
+            // Überprüfe, ob die Buttons bereits hinzugefügt wurden
+            var buttonsAdded = document.getElementById("buttonContainer");
+
+            if (loginForm && window.getComputedStyle(loginForm).display === "none" && !buttonsAdded) {
+                // Erstelle einen Container für die Buttons
+                var buttonContainer = document.createElement("div");
+                buttonContainer.style.textAlign = "center";
+                buttonContainer.id = "buttonContainer"; // Füge eine ID hinzu, um später zu überprüfen
+
+                // Erster Button führt auf die Spracherkennungsseite
+                var webButton1 = document.createElement("button");
+                webButton1.innerHTML = "Zur Spracherkennung";
+                webButton1.onclick = function () {
+                    // Ändere die Ziel-URL entsprechend
+                    window.location.href = "https://lapdcodeerkennung.html-5.me/";
+                };
+                buttonContainer.appendChild(webButton1);
+
+                // Zweiter Button führt auf die Kennzeichen-Prüfseite
+                var webButton2 = document.createElement("button");
+                webButton2.innerHTML = "Kennzeichen Prüfen";
+                webButton2.onclick = function () {
+                    // Ändere die Ziel-URL entsprechend
+                    window.location.href = "https://lapdkennzeichen.html-5.me/";
+                };
+
+                // Füge die Buttons unterhalb des Logos hinzu
+                var logo = document.getElementById("logo");
+                if (logo) {
+                    logo.parentNode.insertBefore(buttonContainer, logo.nextSibling);
+                    buttonContainer.appendChild(webButton2); // Hier wird der zweite Button hinzugefügt
+                }
+            }
+        }
+
+        // Überprüfe alle 5 Sekunden, ob das loginForm auf "display: none" steht
+        setInterval(function () {
+            addButtonsIfLoginFormHidden();
+        }, 1000);
+
+        // Initial einmal überprüfen
+        addButtonsIfLoginFormHidden();
+    </script>
+
+    <style>
+        /* CSS für die Buttons */
+        #buttonContainer button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px; /* Geringere Rundung der Ecken */
+            cursor: pointer;
+            background-color: #34495e; /* Farbe #34495e */
+            color: #fff;
+        }
+
+        #buttonContainer button:hover {
+            background-color: #2c3e50; /* Farbe beim Hover-Effekt */
+        }
+    </style>
+
+    <script>
+        // Funktion zur Anpassung von Elementen basierend auf dem Gerätetyp
+        function adjustLayout() {
+            if (window.innerWidth <= 768) {
+                // Code für mobile Geräte
+                adjustForMobile();
+            } else {
+                // Code für Desktop-Geräte
+                adjustForDesktop();
+            }
+        }
+
+        // Funktion für die Anpassungen auf Mobilgeräten
+        function adjustForMobile() {
+            // Hier könnten Sie die Größen der Elemente für Mobilgeräte anpassen
+            document.body.style.fontSize = '14px'; // Beispielhafte Änderung der Schriftgröße
+        }
+
+        // Funktion für die Anpassungen auf Desktop-Geräten
+        function adjustForDesktop() {
+            // Hier könnten Sie die Größen der Elemente für Desktop-Geräte anpassen
+            document.body.style.fontSize = '16px'; // Beispielhafte Änderung der Schriftgröße
+        }
+
+        // Aufruf der Funktion beim Laden der Seite
+        window.onload = adjustLayout;
+
+        // Optional: Funktion erneut aufrufen, wenn sich die Fenstergröße ändert
+        window.onresize = adjustLayout;
+    </script>
+</body>
+
+</html>
