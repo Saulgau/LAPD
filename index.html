@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,7 +25,7 @@
         }
 
         #logo img {
-            width: 300px; /* Logo-Größe */
+            width: 300px;
         }
 
         #chatBox {
@@ -79,10 +78,10 @@
         #buttonContainer {
             position: absolute;
             left: 20px;
-            top: 150px; /* Abstand vom oberen Rand */
+            top: 150px;
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* Buttons links ausrichten */
+            align-items: flex-start;
         }
 
         #buttonContainer button {
@@ -101,7 +100,6 @@
         }
     </style>
 </head>
-
 <body>
     <div id="logo">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Seal_of_the_Los_Angeles_Police_Department.png/220px-Seal_of_the_Los_Angeles_Police_Department.png" alt="Police Logo">
@@ -120,21 +118,33 @@
     </div>
 
     <script>
+        const ws = new WebSocket('ws://dein-websocket-server:8080');
+
+        ws.onopen = () => {
+            console.log('Verbindung geöffnet');
+        };
+
+        ws.onmessage = event => {
+            const chatBox = document.getElementById('chatBox');
+            const newMessage = document.createElement('div');
+            newMessage.textContent = event.data;
+            newMessage.className = 'chat-box';
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        };
+
+        ws.onclose = () => {
+            console.log('Verbindung geschlossen');
+        };
+
         function sendMessage() {
             const messageInput = document.getElementById('messageInput');
-            const chatBox = document.getElementById('chatBox');
-
             if (messageInput.value.trim() !== '') {
-                const newMessage = document.createElement('div');
-                newMessage.textContent = messageInput.value;
-                newMessage.className = 'chat-box';
-                chatBox.appendChild(newMessage);
+                ws.send(messageInput.value);
                 messageInput.value = '';
-                chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
 
-        // Funktion um mit Enter-Taste Nachrichten zu senden
         document.getElementById('messageInput').addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
                 sendMessage();
@@ -142,5 +152,4 @@
         });
     </script>
 </body>
-
 </html>
