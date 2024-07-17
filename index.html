@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAPD</title>
+    <title>LAPD Test</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -102,7 +102,7 @@
 </head>
 <body>
     <div id="logo">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Seal_of_the_Los_Angeles_Police_Department.png/220px-Seal_of_the_Los_Angeles_Police_Department.png" alt="LAPD Logo">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Seal_of_the_Los_Angeles_Police_Department.png/220px-Seal_of_the_Los_Angeles_Police_Department.png" alt="Police Logo">
     </div>
 
     <div id="chatBox"></div>
@@ -118,30 +118,20 @@
     </div>
 
     <script>
-        const ws = new WebSocket('ws://dein-websocket-server:8080');
-
-        ws.onopen = () => {
-            console.log('Verbindung geöffnet');
-        };
-
-        ws.onmessage = event => {
-            const chatBox = document.getElementById('chatBox');
-            const newMessage = document.createElement('div');
-            newMessage.textContent = event.data;
-            newMessage.className = 'chat-box';
-            chatBox.appendChild(newMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        };
-
-        ws.onclose = () => {
-            console.log('Verbindung geschlossen');
-        };
+        const chatBox = document.getElementById('chatBox');
+        const messages = [];
 
         function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             if (messageInput.value.trim() !== '') {
-                ws.send(messageInput.value);
+                const newMessage = document.createElement('div');
+                newMessage.textContent = messageInput.value;
+                newMessage.className = 'chat-box';
+                chatBox.appendChild(newMessage);
+                messages.push(messageInput.value);
+                localStorage.setItem('chatMessages', JSON.stringify(messages));
                 messageInput.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         }
 
@@ -149,6 +139,17 @@
             if (event.key === 'Enter') {
                 sendMessage();
             }
+        });
+
+        window.addEventListener('load', () => {
+            const savedMessages = JSON.parse(localStorage.getItem('chatMessages')) || [];
+            savedMessages.forEach(message => {
+                const newMessage = document.createElement('div');
+                newMessage.textContent = message;
+                newMessage.className = 'chat-box';
+                chatBox.appendChild(newMessage);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight;
         });
     </script>
 </body>
