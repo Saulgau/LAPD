@@ -6,16 +6,22 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a237e">
-    <title>LAPD Chat</title>
+    <title>LAPD</title>
     <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Seal_of_the_Los_Angeles_Police_Department.png/220px-Seal_of_the_Los_Angeles_Police_Department.png">
     <link rel="manifest" href="manifest.json">
     <style>
         :root {
-            --primary-color: #1a237e;
-            --secondary-color: #3949ab;
-            --background-color: #f5f5f5;
-            --text-color: #212121;
-            --chat-bg: #ffffff;
+            --primary-color: #3949ab;
+            --secondary-color: #5c6bc0;
+            --background-color: #121212;
+            --text-color: #ffffff;
+            --form-bg: #1e1e1e;
+            --input-border: #333333;
+            --input-focus: #5c6bc0;
+            --button-bg: #5c6bc0;
+            --button-hover: #3949ab;
+            --error-color: #f44336;
+            --chat-bg: #1e1e1e;
         }
 
         * {
@@ -26,11 +32,11 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             margin: 0;
-            padding: 0;
             display: flex;
             height: 100vh;
             background-color: var(--background-color);
             color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .sidebar {
@@ -40,6 +46,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
         }
 
         .logo {
@@ -47,29 +54,97 @@
             margin-bottom: 30px;
         }
 
-        .nav-button {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            background-color: var(--secondary-color);
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            font-size: 16px;
-            -webkit-appearance: none;
-        }
-
-        .nav-button:hover {
-            background-color: #303f9f;
-        }
-
         .main-content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             padding: 20px;
+        }
+
+        #loginForm, #chatContainer {
+            background-color: var(--form-bg);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 500px;
+            margin: auto;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #loginForm:hover, #chatContainer:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15), 0 3px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 24px;
+            color: var(--primary-color);
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 14px;
+            color: #757575;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 0;
+            font-size: 16px;
+            color: var(--text-color);
+            border: none;
+            border-bottom: 1px solid var(--input-border);
+            outline: none;
+            background: transparent;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus {
+            border-bottom-color: var(--input-focus);
+        }
+
+        input:focus + label,
+        input:not(:placeholder-shown) + label {
+            top: -20px;
+            font-size: 12px;
+            color: var(--input-focus);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--button-bg);
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--button-hover);
+            transform: translateY(-2px);
+        }
+
+        .error {
+            color: var(--error-color);
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
         }
 
         #chatBox {
@@ -80,7 +155,7 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            -webkit-overflow-scrolling: touch;
+            height: 400px;
         }
 
         .chat-message {
@@ -89,8 +164,6 @@
             border-radius: 18px;
             margin-bottom: 10px;
             max-width: 70%;
-            align-self: flex-start;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             word-wrap: break-word;
         }
 
@@ -98,6 +171,7 @@
             background-color: var(--secondary-color);
             color: white;
             align-self: flex-end;
+            margin-left: auto;
         }
 
         #chatInput {
@@ -108,26 +182,30 @@
         #messageInput {
             flex-grow: 1;
             padding: 12px;
-            border: 1px solid #bdbdbd;
+            border: 1px solid var(--input-border);
             border-radius: 25px;
             font-size: 16px;
-            -webkit-appearance: none;
         }
 
-        #sendButton {
-            padding: 12px 24px;
-            background-color: var(--primary-color);
+        #logoutButton {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background-color: var(--error-color);
+            padding: 8px 16px;
+            border-radius: 4px;
             color: white;
-            border: none;
-            border-radius: 25px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
-            font-size: 16px;
-            -webkit-appearance: none;
+            display: none;
         }
 
-        #sendButton:hover {
-            background-color: var(--secondary-color);
+        #userInfo {
+            position: absolute;
+            bottom: 60px;
+            left: 20px;
+            font-size: 14px;
+            color: white;
+            display: none;
         }
 
         @media (max-width: 768px) {
@@ -139,118 +217,147 @@
                 width: 100%;
                 padding: 10px;
                 flex-direction: row;
-                justify-content: space-around;
+                justify-content: space-between;
                 align-items: center;
-                position: fixed;
-                bottom: 0;
-                z-index: 1000;
             }
 
             .logo {
-                display: none;
-            }
-
-            .nav-button {
-                width: auto;
+                width: 60px;
                 margin-bottom: 0;
-                padding: 10px;
-                font-size: 14px;
             }
 
             .main-content {
                 padding: 10px;
-                padding-bottom: 70px;
             }
 
-            #chatBox {
-                margin-bottom: 10px;
+            #loginForm, #chatContainer {
+                width: 100%;
+                padding: 20px;
             }
 
-            #chatInput {
-                position: fixed;
-                bottom: 70px;
-                left: 10px;
-                right: 10px;
-                background-color: var(--background-color);
-                padding: 10px;
+            #logoutButton {
+                position: static;
+                margin-top: 10px;
+            }
+
+            #userInfo {
+                position: static;
+                margin-top: 10px;
+                color: var(--text-color);
             }
         }
     </style>
-    <!-- Firebase SDK hinzufügen -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
-<body>
+<body class="dark-mode">
     <div class="sidebar">
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Seal_of_the_Los_Angeles_Police_Department.png/220px-Seal_of_the_Los_Angeles_Police_Department.png" alt="LAPD Logo" class="logo">
-        <button class="nav-button" onclick="window.location.href='https://saulgau.github.io/LAPDFunkCodes/'">Spracherkennung</button>
-        <button class="nav-button" onclick="window.location.href='https://saulgau.github.io/LAPDKenzeichen/'">Kennzeichen prüfen</button>
+        <div id="userInfo"></div>
+        <button id="logoutButton" onclick="logout()">Abmelden</button>
     </div>
 
     <div class="main-content">
-        <div id="chatBox"></div>
-        <div id="chatInput">
-            <input type="text" id="messageInput" placeholder="Nachricht eingeben...">
-            <button id="sendButton" onclick="sendMessage()">Senden</button>
+        <div id="loginForm">
+            <h2>LAPD Anmeldung</h2>
+            <div class="input-group">
+                <input type="text" id="username" name="username" required placeholder=" ">
+                <label for="username">Benutzername</label>
+            </div>
+
+            <div class="input-group">
+                <input type="password" id="password" name="password" required placeholder=" ">
+                <label for="password">Passwort</label>
+            </div>
+
+            <div class="input-group">
+                <input type="text" id="serviceNumber" name="serviceNumber" pattern="\d{3}" title="Drei Ziffern erforderlich" required placeholder=" ">
+                <label for="serviceNumber">Dienstnummer (3-stellig)</label>
+            </div>
+
+            <button onclick="login()">Anmelden</button>
+
+            <div id="loginFeedback" class="error" style="display: none">
+                Falsche Anmeldeinformationen, bitte versuchen Sie es erneut.
+            </div>
+        </div>
+
+        <div id="chatContainer" style="display: none;">
+            <h2>Chat</h2>
+            <div id="chatBox"></div>
+            <div id="chatInput">
+                <input type="text" id="messageInput" placeholder="Nachricht eingeben...">
+                <button onclick="sendMessage()">Senden</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Firebase-Konfiguration
-        const firebaseConfig = {
-            // Hier Ihre Firebase-Konfiguration einfügen
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+        const users = {
+            user1: { username: "Lucas Dawson", password: "LucasDawson07", serviceNumber: "215" },
+            user2: { username: "admin", password: "admin", serviceNumber: "admin" },
+            user3: { username: "Marcel Rickiat", password: "MarcelRickiat07", serviceNumber: "216" }
         };
 
-        // Firebase initialisieren
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        window.addEventListener('load', () => {
+            const savedUser = localStorage.getItem('loggedInUser');
+            if (savedUser) {
+                login(JSON.parse(savedUser));
+            }
+        });
 
-        const chatBox = document.getElementById('chatBox');
+        function login(savedUser = null) {
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const serviceNumberInput = document.getElementById('serviceNumber');
+            const loginFeedback = document.getElementById('loginFeedback');
 
-        function sendMessage() {
-            const messageInput = document.getElementById('messageInput');
-            if (messageInput.value.trim() !== '') {
-                // Nachricht in Firebase speichern
-                database.ref('messages').push({
-                    text: messageInput.value,
-                    timestamp: Date.now()
-                });
-                messageInput.value = '';
+            let username, password, serviceNumber;
+            if (savedUser) {
+                username = savedUser.username;
+                password = savedUser.password;
+                serviceNumber = savedUser.serviceNumber;
+            } else {
+                username = usernameInput.value;
+                password = passwordInput.value;
+                serviceNumber = serviceNumberInput.value;
+            }
+
+            const user = Object.values(users).find(u => u.username === username && u.password === password && u.serviceNumber === serviceNumber);
+
+            if (user) {
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('chatContainer').style.display = 'block';
+                document.getElementById('userInfo').textContent = `Angemeldet als: ${user.username}`;
+                document.getElementById('userInfo').style.display = 'block';
+                document.getElementById('logoutButton').style.display = 'block';
+            } else {
+                loginFeedback.style.display = 'block';
             }
         }
 
-        document.getElementById('messageInput').addEventListener('keypress', function (event) {
-            if (event.key === 'Enter') {
-                sendMessage();
+        function logout() {
+            localStorage.removeItem('loggedInUser');
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('chatContainer').style.display = 'none';
+            document.getElementById('userInfo').style.display = 'none';
+            document.getElementById('logoutButton').style.display = 'none';
+        }
+
+        function sendMessage() {
+            const chatBox = document.getElementById('chatBox');
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (message) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('chat-message', 'sent');
+                const username = JSON.parse(localStorage.getItem('loggedInUser')).username;
+                messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+                chatBox.appendChild(messageElement);
+                messageInput.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
-        });
-
-        // Nachrichten aus Firebase empfangen und anzeigen
-        database.ref('messages').on('child_added', (snapshot) => {
-            const message = snapshot.val();
-            const newMessage = document.createElement('div');
-            newMessage.textContent = message.text;
-            newMessage.className = 'chat-message';
-            chatBox.appendChild(newMessage);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        });
-
-        // Verhindern des Zooms auf mobilen Geräten
-        document.addEventListener('gesturestart', function (e) {
-            e.preventDefault();
-        });
-
-        // Verhindern des Überscrollens auf iOS
-        document.body.addEventListener('touchmove', function(e) {
-            e.preventDefault();
-        }, { passive: false });
+        }
     </script>
 </body>
 </html>
