@@ -2,8 +2,13 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAPD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a237e">
+    <title>LAPD Chat</title>
+    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/a/aa/Seal_of_the_Los_Angeles_Police_Department.png/220px-Seal_of_the_Los_Angeles_Police_Department.png">
+    <link rel="manifest" href="manifest.json">
     <style>
         :root {
             --primary-color: #1a237e;
@@ -13,8 +18,13 @@
             --chat-bg: #ffffff;
         }
 
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
         body {
-            font-family: 'Roboto', 'Arial', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
@@ -48,6 +58,7 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             font-size: 16px;
+            -webkit-appearance: none;
         }
 
         .nav-button:hover {
@@ -69,6 +80,7 @@
             padding: 20px;
             margin-bottom: 20px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            -webkit-overflow-scrolling: touch;
         }
 
         .chat-message {
@@ -79,6 +91,7 @@
             max-width: 70%;
             align-self: flex-start;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            word-wrap: break-word;
         }
 
         .chat-message.sent {
@@ -98,6 +111,7 @@
             border: 1px solid #bdbdbd;
             border-radius: 25px;
             font-size: 16px;
+            -webkit-appearance: none;
         }
 
         #sendButton {
@@ -109,6 +123,7 @@
             cursor: pointer;
             transition: background-color 0.3s ease;
             font-size: 16px;
+            -webkit-appearance: none;
         }
 
         #sendButton:hover {
@@ -123,14 +138,40 @@
             .sidebar {
                 width: 100%;
                 padding: 10px;
+                flex-direction: row;
+                justify-content: space-around;
+                align-items: center;
+                position: fixed;
+                bottom: 0;
+                z-index: 1000;
             }
 
             .logo {
-                width: 100px;
-                margin-bottom: 15px;
+                display: none;
+            }
+
+            .nav-button {
+                width: auto;
+                margin-bottom: 0;
+                padding: 10px;
+                font-size: 14px;
             }
 
             .main-content {
+                padding: 10px;
+                padding-bottom: 70px;
+            }
+
+            #chatBox {
+                margin-bottom: 10px;
+            }
+
+            #chatInput {
+                position: fixed;
+                bottom: 70px;
+                left: 10px;
+                right: 10px;
+                background-color: var(--background-color);
                 padding: 10px;
             }
         }
@@ -185,7 +226,7 @@
             }
         }
 
-       document.getElementById('messageInput').addEventListener('keypress', function (event) {
+        document.getElementById('messageInput').addEventListener('keypress', function (event) {
             if (event.key === 'Enter') {
                 sendMessage();
             }
@@ -200,6 +241,16 @@
             chatBox.appendChild(newMessage);
             chatBox.scrollTop = chatBox.scrollHeight;
         });
+
+        // Verhindern des Zooms auf mobilen Geräten
+        document.addEventListener('gesturestart', function (e) {
+            e.preventDefault();
+        });
+
+        // Verhindern des Überscrollens auf iOS
+        document.body.addEventListener('touchmove', function(e) {
+            e.preventDefault();
+        }, { passive: false });
     </script>
 </body>
 </html>
